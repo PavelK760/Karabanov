@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 import numpy as np
 
-designation = 0
+called = 0
 salaryfrom = 1
 salaryto = 2
 sal = 3
