@@ -1,269 +1,283 @@
-from operator import itemgetter as inter
-import openpyxl
-from openpyxl.styles import Font, Border, Side
-from openpyxl.utils import get_column_letter
-from openpyxl.styles.numbers import FORMAT_PERCENTAGE_00
 import csv
-import os
+from openpyxl.utils import get_column_letter
+from openpyxl import Workbook
+from openpyxl.styles import Font, Border, Side
+
+
+class Vacancy:
+    currencytorub = {
+        "AZN": 35.68, "BYR": 23.91, "GEL": 21.74, "KGS": 0.76,
+        "KZT": 0.13, "RUR": 1, "EUR": 59.90, "UAH": 1.64, "UZS": 0.0055, "USD": 60.66,
+    }
+
+    def __init__(selfies, vacanciesy):
+        selfies.name = vacanciesy['name']
+        selfies.salary_from = int(float(vacanciesy['salary_from']))
+        selfies.salary_to = int(float(vacanciesy['salary_to']))
+        selfies.salary_currency = vacanciesy['salary_currency']
+        selfies.salary_average = selfies.currencytorub[selfies.salary_currency] * (selfies.salary_from + selfies.salary_to) / 2
+        selfies.area_name = vacanciesy['area_name']
+        selfies.year = int(vacanciesy['published_at'][:4])
 
 
 
 class DataSet:
-    def __init__(self, f_Name, profession):
-        self.file_name = f_Name
-        self.dictionary_translator = {"noExperience": "Нет опыта",
-                                      "between1And3": "От 1 года до 3 лет",
-                                      "between3And6": "От 3 до 6 лет",
-                                      "moreThan6": "Более 6 лет",
-                                      "AZN": "Манаты",
-                                      "BYR": "Белорусские рубли",
-                                      "EUR": "Евро",
-                                      "GEL": "Грузинский лари",
-                                      "KGS": "Киргизский сом",
-                                      "KZT": "Тенге",
-                                      "RUR": "Рубли",
-                                      "UAH": "Гривны",
-                                      "USD": "Доллары",
-                                      "UZS": "Узбекский сум",
-                                      "True": "Да",
-                                      "False": "Нет",
-                                      "FALSE": "Нет",
-                                      "TRUE": "Да"}
+    def __init__(selfies, names_file, names_vacancy):
+        selfies.names_vacancy = names_vacancy
+        selfies.names_file = names_file
 
-        header, data = self.CSV_File_Start(self.file_name)
+    @staticmethod
+    def aver(dict):
+        new_dict = {}
+        return DataSet.func1(dict, new_dict)
 
-        vacancies = self.CSV_filtData(header, data)
-        vac_items = []
-        for vacancy in vacancies:
-            vac_items.append(Vacancy(vacancy))
-        self.vacancies_objects = vac_items
+    @staticmethod
+    def func1(dict, new_dict):
+        return DataSet.func2(dict, new_dict)
 
+    @staticmethod
+    def func2(dict, new_dict):
+        return DataSet.func3(dict, new_dict)
 
-        self.profession = profession
-        self.vacancies_count_by_years = self.get_vacancies_count_by_years()
-        self.vacancies_count_by_years_for_profession = self.get_vacancies_count_by_years_for_profession()
-        self.salary_by_years = self.get_salary_by_years()
-        self.salary_by_years_for_profession = self.get_salary_by_years_for_profession()
-        self.vacancies_count_by_cities = self.get_vacancies_count_by_cities()
-        self.vacancies_share_by_cities = self.get_vacancies_share_by_cities()
-        self.salary_by_cities = self.get_salary_by_cities()
+    @staticmethod
+    def func3(dict, new_dict):
+        return DataSet.func4(dict, new_dict)
 
+    @staticmethod
+    def func4(dict, new_dict):
+        for keys, value in dict.items():
+            new_dict[keys] = int(sum(value) / len(value))
+        return new_dict
 
-    def CSV_File_Start(self, CSV_name):
+    @staticmethod
+    def increments(dict, keys, amounts):
+        DataSet.func5(amounts, dict, keys)
 
-        with open(CSV_name, "r", encoding="utf-8-sig") as f:
-            if os.stat(f.name).st_size == 0:
-                print('Пустой файл')
-                exit()
-            if os.stat(f.name).st_size <= 138:
-                print('Нет данных')
-                exit()
-            f = csv.reader(f, delimiter=",")
-            # !!!!!!!!!!!!!!!!!!!!!!!!!
-            header = list(next(f))
-            # !!!!!!!!!!!!!!!!!!!!!!!!
-            data = list(self.data_recone(f, header))
-        return header, data
-
-    def data_recone(self, name, header):
-        vacancy_data = filter(lambda item: len(item) == len(header) and "" not in item, name)
-        # vacancy_data = (map(clean_string, item) for item in vacancy_data)
-        vacancy_data = list(item for item in vacancy_data)
-        return vacancy_data
-
-    def CSV_filtData(self, list_naming, reader):
-        dictionaries_list = []
-        for vacancy in reader:
-            dictionary = {}
-            for i in range(len(list_naming)):
-                dictionary[list_naming[i]] = vacancy[i]
-            dictionaries_list.append(dictionary)
-        return dictionaries_list
-
-    def is_published(self, main, item, inner_data):
-
-        if item.published_at not in main: main[item.published_at] = inner_data
-        else: main[item.published_at] += inner_data
-        return main
-#/////////////////////////
-    def dict_processing_area(self, dictionary, vacancy, summand):
-        if vacancy.area_name in dictionary:
-            dictionary[vacancy.area_name] += summand
+    @staticmethod
+    def func5(amounts, dict, keys):
+        if keys in dict:
+            dict[keys] += amounts
         else:
-            dictionary[vacancy.area_name] = summand
-        return dictionary
+            dict[keys] = amounts
 
-    def get_vacancies_count_by_years(self):
-        dictionary = {}
-        for vacancy in self.vacancies_objects:
-            dictionary = self.is_published(dictionary, vacancy, 1)
-        dictionary = dict(sorted(dictionary.items(), key=inter(0)))
-        return dictionary
+    def csvreaders(selfies):
+        yield from selfies.func6()
 
-    def get_vacancies_count_by_years_for_profession(self):
-        dictionary = {}
-        for vacancy in self.vacancies_objects:
-            if self.profession not in vacancy.name:
-                continue
-            dictionary = self.is_published(dictionary, vacancy, 1)
-        dictionary = dict(sorted(dictionary.items(), key=inter(0)))
-        if len(dictionary) == 0:
-            dictionary = {2022: 0}
-        return dictionary
+    def func6(selfies):
+        with open(selfies.names_file, mode='r', encoding='utf-8-sig') as file:
+            readers = csv.reader(file)
+            headers = next(readers)
+            headers_length = len(headers)
+            yield from selfies.funca1(headers, headers_length, readers)
 
-    def get_salary_by_years(self):
-        dictionary = {}
-        for vacancy in self.vacancies_objects:
-            dictionary = self.is_published(dictionary, vacancy, vacancy.salary)
-        for key in dictionary:
-            dictionary[key] = int(dictionary[key] / self.vacancies_count_by_years[key])
-        dictionary = dict(sorted(dictionary.items(), key=inter(0)))
-        return dictionary
+    def funca1(selfies, headers, headers_length, readers):
+        for rows in readers:
+            if '' not in rows and len(rows) == headers_length:
+                yield dict(zip(headers, rows))
 
-    def get_salary_by_years_for_profession(self):
-        dictionary = {}
-        for vacancy in self.vacancies_objects:
-            if self.profession not in vacancy.name:
-                continue
-            dictionary = self.is_published(dictionary, vacancy, vacancy.salary)
-        for key in dictionary:
-            dictionary[key] = int(dictionary[key] / self.vacancies_count_by_years_for_profession[key])
-        dictionary = dict(sorted(dictionary.items(), key=inter(0)))
-        if len(dictionary) == 0:
-            dictionary = {2022: 0}
-        return dictionary
+    def stats(selfies):
+        salaries = {}
+        city = {}
+        salaryOfVacancy = {}
+        count = 0
 
-    def get_vacancies_count_by_cities(self):
-        dictionary = {}
-        for vacancy in self.vacancies_objects:
-            dictionary = self.dict_processing_area(dictionary, vacancy, 1)
-        return dictionary
+        count = selfies.funca2(city, count, salaries, salaryOfVacancy)
 
-    def get_vacancies_share_by_cities(self):
-        dictionary = {}
-        for key in self.vacancies_count_by_cities:
-            if self.vacancies_count_by_cities[key] / len(self.vacancies_objects) >= 0.01:
-                dictionary[key] = self.vacancies_count_by_cities[key] / len(self.vacancies_objects)
-        dictionary = dict(sorted(dictionary.items(), key=inter(1), reverse=True))
-        new_dictionary = self.take_ten_items(dictionary)
-        return new_dictionary
+        number_vacancies = dict([(keys, len(values)) for keys, values in salaries.items()])
+        namevac_number = dict([(keys, len(values)) for keys, values in salaryOfVacancy.items()])
 
-    def get_salary_by_cities(self):
-        dictionary = {}
-        for vacancy in self.vacancies_objects:
-            if self.vacancies_count_by_cities[vacancy.area_name] / len(self.vacancies_objects) < 0.01:
-                continue
-            dictionary = self.dict_processing_area(dictionary, vacancy, vacancy.salary)
-        for key in dictionary:
-            dictionary[key] = int(dictionary[key] / self.vacancies_count_by_cities[key])
-        dictionary = dict(sorted(dictionary.items(), key=inter(1), reverse=True))
-        new_dictionary = self.take_ten_items(dictionary)
-        return new_dictionary
+        namevac_number, salaryOfVacancy = selfies.fucna3(namevac_number, number_vacancies, salaries, salaryOfVacancy)
 
-    def print_information(self):
-        print(f"Динамика уровня зарплат по годам: {str(self.salary_by_years)}")
-        print(f"Динамика количества вакансий по годам: {str(self.vacancies_count_by_years)}")
-        print(f"Динамика уровня зарплат по годам для выбранной профессии: {str(self.salary_by_years_for_profession)}")
-        print(f"Динамика количества вакансий по годам для выбранной профессии: {str(self.vacancies_count_by_years_for_profession)}")
-        print(f"Уровень зарплат по городам (в порядке убывания): {str(self.salary_by_cities)}")
-        print(f"Доля вакансий по городам (в порядке убывания): {str(self.vacancies_share_by_cities)}")
+        statist, statist2, statist3 = selfies.funca4(city, salaries, salaryOfVacancy)
 
-    def take_ten_items(self, dictionary):
-        new_dictionary = {}
-        i = 0
-        for key in dictionary:
-            new_dictionary[key] = round(dictionary[key], 4)
-            i += 1
-            if i == 10:
-                break
-        return new_dictionary
+        statist4, statist5 = selfies.funca5(city, count)
+        statist3, statist5 = selfies.funca6(statist3, statist4, statist5)
 
-class Vacancy:
-    def __init__(self, dictionary):
-        self.name = dictionary["name"]
-        self.salary = (float(dictionary["salary_from"]) + float(dictionary["salary_to"])) / 2 * toRubCurrency[
-            dictionary["salary_currency"]]
-        self.area_name = dictionary["area_name"]
-        self.published_at = int(dictionary["published_at"][:4])
+        return statist, number_vacancies, statist2, namevac_number, statist3, statist5
 
+    def funca6(selfies, statist3, statist4, statist5):
+        statist4 = dict(statist4)
+        statist3 = list(
+            filter(lambda a: a[0] in list(statist4.keys()), [(key, value) for key, value in statist3.items()]))
+        statist3.sort(key=lambda a: a[-1], reverse=True)
+        statist3 = dict(statist3[:10])
+        statist5 = dict(statist5[:10])
+        return statist3, statist5
+
+    def funca5(selfies, city, count):
+        statist4 = {}
+        selfies.func8(city, count, statist4)
+        statist4 = list(filter(lambda a: a[-1] >= 0.01, [(keys, values) for keys, values in statist4.items()]))
+        statist4.sort(key=lambda a: a[-1], reverse=True)
+        statist5 = statist4.copy()
+        return statist4, statist5
+
+    def funca4(selfies, city, salaries, salaryOfVacancy):
+        statist = selfies.aver(salaries)
+        statist2 = selfies.aver(salaryOfVacancy)
+        statist3 = selfies.aver(city)
+        return statist, statist2, statist3
+
+    def fucna3(selfies, namevac_number, number_vacancies, salaries, salaryOfVacancy):
+        if not salaryOfVacancy:
+            salaryOfVacancy = dict([(keys, [0]) for keys, values in salaries.items()])
+            namevac_number = dict([(keys, 0) for keys, values in number_vacancies.items()])
+        return namevac_number, salaryOfVacancy
+
+    def funca2(selfies, city, count, salaries, salaryOfVacancy):
+        for vacancies_dictionaries in selfies.csvreaders():
+            vacanciesy = Vacancy(vacancies_dictionaries)
+            selfies.increments(salaries, vacanciesy.year, [vacanciesy.salary_average])
+            count = selfies.func7(city, count, salaryOfVacancy, vacanciesy)
+        return count
+
+    def func8(selfies, city, count, statist4):
+        for years, salaries in city.items():
+            statist4[years] = round(len(salaries) / count, 4)
+
+    def func7(selfies, city, count, salaryOfVacancy, vacanciesy):
+        if vacanciesy.name.find(selfies.names_vacancy) != -1:
+            selfies.increments(salaryOfVacancy, vacanciesy.year, [vacanciesy.salary_average])
+        selfies.increments(city, vacanciesy.area_name, [vacanciesy.salary_average])
+        count += 1
+        return count
+
+    @staticmethod
+    def printstats(statist1, statist2, statist3, statist4, statist5, statist6):
+        print('Динамика уровня зарплат по годам: {0}'.format(statist1))
+        print('Динамика количества вакансий по годам для выбранной профессии: {0}'.format(statist4))
+        print('Уровень зарплат по городам (в порядке убывания): {0}'.format(statist5))
+        print('Динамика количества вакансий по годам: {0}'.format(statist2))
+        print('Доля вакансий по городам (в порядке убывания): {0}'.format(statist6))
+        print('Динамика уровня зарплат по годам для выбранной профессии: {0}'.format(statist3))
+
+
+class InputConnect:
+    def __init__(selfies):
+        selfies.names_file = input('Введите название файла: ')
+        selfies.names_vacancy = input('Введите название профессии: ')
+
+        datasets = DataSet(selfies.names_file, selfies.names_vacancy)
+        statist1, statist2, statist3, statist4, statist5, statist6 = datasets.stats()
+        datasets.printstats(statist1, statist2, statist3, statist4, statist5, statist6)
+
+        reported = Report(selfies.names_vacancy, statist1, statist2, statist3, statist4, statist5, statist6)
+        reported.excel()
 
 class Report:
-    def __init__(self, dataset):
-        self.years_list_headers = (
-            "Год", "Средняя зарплата", f"Средняя зарплата - {dataset.profession}", "Количество вакансий",
-            f"Количество вакансий - {dataset.profession}")
-        self.years_list_columns = [[year for year in dataset.salary_by_years],
-                                   [value for value in dataset.salary_by_years.values()],
-                                   [value for value in dataset.salary_by_years_for_profession.values()],
-                                   [value for value in dataset.vacancies_count_by_years.values()],
-                                   [value for value in dataset.vacancies_count_by_years_for_profession.values()]]
+    def __init__(selfies, names_vacanciesy, statist1, statist2, statist3, statist4, statist5, statist6):
+        selfies.web = Workbook()
+        selfies.names_vacancies = names_vacanciesy
+        selfies.funca5(statist1, statist2, statist3, statist4, statist5, statist6)
 
-        self.cities_list_headers = ("Город", "Уровень зарплат", "", "Город", "Доля вакансий")
-        self.cities_list_columns = [[city for city in dataset.salary_by_cities],
-                                    [value for value in dataset.salary_by_cities.values()],
-                                    ["" for i in range(len(dataset.salary_by_cities))],
-                                    [city for city in dataset.vacancies_share_by_cities],
-                                    [value for value in dataset.vacancies_share_by_cities.values()]]
+    def funca5(selfies, statist1, statist2, statist3, statist4, statist5, statist6):
+        selfies.statist1 = statist1
+        selfies.statist2 = statist2
+        selfies.statist3 = statist3
+        selfies.statist4 = statist4
+        selfies.statist5 = statist5
+        selfies.statist6 = statist6
 
-        self.years_list_widths = [len(header) + 2 for header in self.years_list_headers]
-        for i in range(len(self.years_list_columns)):
-            for cell in self.years_list_columns[i]:
-                self.years_list_widths[i] = max(len(str(cell)) + 2, self.years_list_widths[i])
+    def excel(selfies):
+        wb1 = selfies.web.active
+        wb1.title = 'Статистика по годам'
+        wb1.append(['Год', 'Средняя зарплата', 'Средняя зарплата - ' + selfies.names_vacancies, 'Количество вакансий', 'Количество вакансий - ' + selfies.names_vacancies])
+        selfies.funca6(wb1)
 
-        self.cities_list_widths = [len(header) + 2 for header in self.cities_list_headers]
-        for i in range(len(self.cities_list_columns)):
-            for cell in self.cities_list_columns[i]:
-                self.cities_list_widths[i] = max(len(str(cell)) + 2, self.cities_list_widths[i])
+        datas = [['Год ', 'Средняя зарплата ', ' Средняя зарплата - ' + selfies.names_vacancies, ' Количество вакансий', ' Количество вакансий - ' + selfies.names_vacancies]]
+        columnWidths = []
+        columnWidths = selfies.func9(columnWidths, datas)
 
-    def set_border(self, ws, width, height):
-        cell_range = f'A1:{get_column_letter(width)}{height}'
-        thin = Side(border_style="thin", color="000000")
-        for row in ws[cell_range]:
-            for cell in row:
-                cell.border = Border(top=thin, left=thin, right=thin, bottom=thin)
+        selfies.func10(columnWidths, wb1)
 
-    def clear_column(self, ws, column):
-        empty = Side(border_style=None)
-        for cell in ws[column]:
-            cell.border = Border(top=empty, bottom=empty)
+        datas = []
+        datas.append(['Город', 'Уровень зарплат', '', 'Город', 'Доля вакансий'])
+        selfies.func11(datas)
+        ws2 = selfies.web.create_sheet('Статистика по городам')
+        selfies.funca7(datas, ws2)
 
-    def generate_excel(self):
-        work_book = openpyxl.Workbook()
-        years_list = work_book.active
-        years_list.title = "Статистика по годам"
-        cities_list = work_book.create_sheet("Статистика по городам")
-        years_list.append(self.years_list_headers)
-        for cell in years_list['1']:
-            cell.font = Font(bold=True)
-        for i in range(len(self.years_list_columns[0])):
-            years_list.append([column[i] for column in self.years_list_columns])
-        cities_list.append(self.cities_list_headers)
-        for cell in cities_list['1']:
-            cell.font = Font(bold=True)
-        for i in range(len(self.cities_list_columns[0])):
-            cities_list.append([column[i] for column in self.cities_list_columns])
-        for cell in cities_list['E']:
-            cell.number_format = FORMAT_PERCENTAGE_00
-        for i in range(1, 6):
-            years_list.column_dimensions[get_column_letter(i)].width = self.years_list_widths[i - 1]
-            cities_list.column_dimensions[get_column_letter(i)].width = self.cities_list_widths[i - 1]
-        self.set_border(years_list, len(self.years_list_headers), len(self.years_list_columns[0]) + 1)
-        self.set_border(cities_list, len(self.cities_list_headers), len(self.cities_list_columns[0]) + 1)
-        self.clear_column(cities_list, 'C')
-        work_book.save('report.xlsx')
+        columnWidths = []
+        columnWidths = selfies.func12(columnWidths, datas)
 
+        selfies.func14(columnWidths, ws2)
 
-toRubCurrency = {"GEL": 21.74, "KGS": 0.76, "UZS": 0.0055,
-            "AZN": 35.68, "UAH": 1.64, "KZT": 0.13,
-            "RUR": 1, "BYR": 23.91, "USD": 60.66, "EUR": 59.90, }
+        fontBold = Font(bold=True)
+        selfies.func13(fontBold, wb1, ws2)
 
-file_name = input("Введите название файла: ")
-profession = input("Введите название профессии: ")
-dataset = DataSet(file_name, profession)
-dataset.print_information()
-Report(dataset).generate_excel()
+        selfies.funca8(ws2)
 
-"""
-vacancies.csv
-Программист
-"""
+        thin = Side(border_style='thin', color='00000000')
+
+        selfies.funca9(datas, thin, ws2)
+
+        selfies.statist1[1] = 1
+        selfies.funca10(thin, wb1)
+
+        selfies.web.save('report.xlsx')
+
+    def funca10(selfies, thin, wb1):
+        for rows, _ in enumerate(selfies.statist1):
+            for column in 'ABCDE':
+                wb1[column + str(rows + 1)].border = Border(left=thin, bottom=thin, right=thin, top=thin)
+
+    def funca9(selfies, datas, thin, ws2):
+        for rows in range(len(datas)):
+            for column in 'ABDE':
+                ws2[column + str(rows + 1)].border = Border(left=thin, bottom=thin, right=thin, top=thin)
+
+    def funca8(selfies, ws2):
+        for indexes, _ in enumerate(selfies.statist5):
+            ws2['E' + str(indexes + 2)].number_format = '0.00%'
+
+    def funca7(selfies, datas, ws2):
+        for rows in datas:
+            ws2.append(rows)
+
+    def funca6(selfies, wb1):
+        for years in selfies.statist1.keys():
+            wb1.append([years, selfies.statist1[years], selfies.statist2[years], selfies.statist3[years],
+                        selfies.statist4[years]])
+
+    def func14(selfies, columnWidths, ws2):
+        for j, columnWidth in enumerate(columnWidths, 1):
+            ws2.column_dimensions[get_column_letter(j)].width = columnWidth + 2
+
+    def func13(selfies, fontBold, wb1, ws2):
+        for column in 'ABCDE':
+            wb1[column + '1'].font = fontBold
+            ws2[column + '1'].font = fontBold
+
+    def func12(selfies, columnWidths, datas):
+        for rows in datas:
+            for j, cells in enumerate(rows):
+                cells = str(cells)
+                if len(columnWidths) > j:
+                    if len(cells) > columnWidths[j]:
+                        columnWidths[j] = len(cells)
+                else:
+                    columnWidths += [len(cells)]
+        return columnWidths
+
+    def func11(selfies, datas):
+        for (city1, value1), (city2, value2) in zip(selfies.statist5.items(), selfies.statist6.items()):
+            datas.append([city1, value1, '', city2, value2])
+
+    def func10(selfies, columnWidths, wb1):
+        selfies.func15(columnWidths, wb1)
+
+    def func15(selfies, columnWidths, wb1):
+        for j, columnWidth in enumerate(columnWidths, 1):
+            wb1.column_dimensions[get_column_letter(j)].width = columnWidth + 2
+
+    def func9(selfies, columnWidths, datas):
+        for rows in datas:
+            for j, cells in enumerate(rows):
+                if len(columnWidths) > j:
+                    if len(cells) > columnWidths[j]:
+                        columnWidths[j] = len(cells)
+                else:
+                    columnWidths += [len(cells)]
+        return columnWidths
+
+if __name__ == '__main__':
+    InputConnect()
