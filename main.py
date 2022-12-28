@@ -1,16 +1,24 @@
-# This is a sample Python script.
+from report import InputConnect
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+name = 'вакансии'
+STAT = 'статистика'
+INPUTS = (name, STAT)
+TEXT_IN = 'Выводим вакансии или статистику?'
+TEXT_ER = 'Некорректное значение ввода, попробуйте, ещё раз.'
+NAME_FILE = '../vacancies_by_year.csv'
+NAME_VAC = 'Программист'
 
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
-
-
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('PyCharm')
+    while True:
+        res = str(input(TEXT_IN)).lower()
+        if res.lower() in INPUTS:
+            break
+        print(TEXT_ER)
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    inputconnect = InputConnect(NAME_FILE, NAME_VAC)
+
+    if res == STAT:
+        inputconnect.gen_stats(True)
+    elif res == name:
+        statist1, statist2, statist3, statist4, statist5, statist6 = inputconnect.gen_stats()
+        inputconnect.gen_vac(statist1, statist2, statist3, statist4, statist5, statist6)
