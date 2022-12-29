@@ -9,6 +9,7 @@ import pathlib
 import pdfkit
 
 
+
 class Vacancy:
     """
     Класс для представления вакансии.
