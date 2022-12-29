@@ -8,7 +8,6 @@ from jinja2 import Environment, FileSystemLoader
 import pathlib
 import pdfkit
 
-
 class Vacancy:
     """
     Класс для представления вакансии.
